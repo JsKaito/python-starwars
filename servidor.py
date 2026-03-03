@@ -3,7 +3,7 @@ import socket
 
 def run_server():
     '''
-    Servidor TCP.
+    Servidor TCP básico.
     Espera una conexión de cliente, recibe mensajes y responde con 'accepted'.
     Si recibe 'close', cierra la conexión.
     '''
