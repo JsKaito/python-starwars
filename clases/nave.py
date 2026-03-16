@@ -13,7 +13,7 @@ class Nave:
         self.coste = coste
 
     def crearNaves(self):
-        naves = [
+        return [
             Nave(1, "Estrella de la Muerte", 80, 90, 1500, (20, 30), 4500),
             Nave(2, "Ejecutor", 70, 80, 1200, (35, 50), 4000),
             Nave(3, "Halcón Milenario", 60, 50, 800, (70, 70), 2500),
