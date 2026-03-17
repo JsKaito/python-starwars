@@ -17,6 +17,3 @@ while True:
     if precioTotal < 100000:
         break
     print("El precio total supera los 100000 créditos.Vuelve a introducir las cantidades.")
-    
-    
-    
