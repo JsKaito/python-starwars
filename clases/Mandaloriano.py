@@ -3,17 +3,18 @@ import random as rd
 class Mandaloriano:
     """Representa un Mandaloriano en el universo Star Wars."""
 
-    def __init__(self, id, nombre, ataque, defensa, vida, velocidad, coste):
-        """Inicializa un Mandaloriano."""
+    def __init__(self, id, name, attack, defense, hp, speed, price):
+        """Inicializa mandalorianos."""
         self.id = id
-        self.nombre = nombre
-        self.ataque = ataque
-        self.defensa = defensa
-        self.vida = vida
-        self.velocidad = velocidad
-        self.coste = coste
+        self.name = name
+        self.attack = attack
+        self.defense = defense
+        self.hp = hp
+        self.speed = speed
+        self.price = price
 
-    def crearMandalorianos(self):
+    @staticmethod
+    def crearMandalorianos():
         return [
             Mandaloriano(1, "Mandaloriano 1", 20, 15, 100, 60, 800),
             Mandaloriano(2, "Mandaloriano 2", 25, 20, 120, 50, 1000),

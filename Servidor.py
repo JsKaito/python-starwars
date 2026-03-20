@@ -1,4 +1,8 @@
+
 import socket
+import random as rd
+from clases.Nave import Nave
+from clases.Mandaloriano import Mandaloriano
 
 
 def run_server():
@@ -48,4 +52,24 @@ def run_server():
     server.close()
 
 
+
+empQuantities1 = [rd.randint(0, 10) for _ in range(10)]
+empQuantities2 = [rd.randint(0, 10) for _ in range(10)]
+
+empShips1 = empQuantities1[:5]
+empMandal1 = empQuantities1[5:]
+empShips2 = empQuantities2[:5]
+empMandal2 = empQuantities2[5:]
+
+shipStats = Nave.crearNaves()
+mandalStats = Mandaloriano.crearMandalorianos()
+
+
 run_server()
+
+
+def calculateTurn():
+    velActuar = 60
+    for i in range (empShips1):
+        if shipStats[i].speed >= 60:
+            print()
