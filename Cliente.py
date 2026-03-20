@@ -1,35 +1,57 @@
 import socket
 
-
 def run_client():
-    """
-    Cliente para un servidor TCP.
-    Envía conexiones a un servidor, envía mensajes y espera respuestas.
-    Si envía 'close', cierra la conexión. 
-    """
-    # Crea un socket
+
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    server_ip = "127.0.0.1"  
-    server_port = 8000  
-    
-    # Establece la conexión con el servidor
-    client.connect((server_ip, server_port))
+    server_ip = "127.0.0.1"
+    server_port = 8000
+
+    try:
+        client.connect((server_ip, server_port))
+    except:
+        print("No se pudo conectar al servidor.")
+        return
+
+    print("Conectado al servidor...\n")
 
     while True:
-        msg = input("Introduce el mensaje: ")
-        client.send(msg.encode("utf-8")[:1024])
+        try:
+            response = client.recv(1024)
 
-        response = client.recv(1024)
-        response = response.decode("utf-8")
+            if not response:
+                print("Servidor cerró conexión.")
+                break
 
-        if response.lower() == "closed":
+            response = response.decode()
+            print(f"SERVIDOR: {response}")
+
+            if "Introduce" in response or "Número" in response:
+                msg = input("> ")
+                client.send(msg.encode())
+
+            if "Configuración guardada" in response:
+                print("Servidor: configuración recibida y guardada. Esperando...")
+                continue
+
+            if "BATALLA TERMINADA" in response:
+                print("Fin del juego.")
+                try:
+                    client.send("ACK".encode())
+                except Exception:
+                    pass
+                break
+
+        except ConnectionResetError:
+            print("El servidor se ha cerrado inesperadamente.")
             break
 
-        print(f"Recibido: {response}")
+        except Exception as e:
+            print("Error:", e)
+            break
 
-    # Cierra la conexión con el servidor
     client.close()
-    print("Conexión con el servidor cerrada.")
+    print("Conexión cerrada.")
+
 
 run_client()
