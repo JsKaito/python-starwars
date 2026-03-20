@@ -1,51 +1,153 @@
 import socket
+from clases.Nave import Nave
+from clases.Mandaloriano import Mandaloriano
+import random
+import time
+
+def safe_send(sock, texto):
+    try:
+        sock.sendall(texto.encode('utf-8'))
+    except Exception as e:
+        print('Error send:', e)
+
+
+def safe_recv(sock):
+    try:
+        data = sock.recv(1024)
+        if not data:
+            return None
+        return data.decode('utf-8').strip()
+    except Exception as e:
+        print('Error recv:', e)
+        return None
 
 
 def run_server():
-    '''
-    Servidor TCP básico.
-    Espera una conexión de cliente, recibe mensajes y responde con 'accepted'.
-    Si recibe 'close', cierra la conexión.
-    '''
 
-    # Crear el socket del servidor (TCP)
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    server_ip = "127.0.0.1"
-    port = 8000
+        server_ip = "127.0.0.1"
+        server_port = 8000
 
-    # Asociar el socket a una dirección y puerto
-    server.bind((server_ip, port))
-    # Escuchar conexiones entrantes
-    server.listen(0)
-    print(f"Escuchando en {server_ip}:{port}")
+        server.bind((server_ip, server_port))
+        server.listen(2)
 
-    # Aceptar una conexión entrante
-    client_socket, client_address = server.accept()
-    print(f"Conexión aceptada de {client_address[0]}:{client_address[1]}")
+        print("=== SERVIDOR - LA GUERRA DE LAS GALAXIAS ===")
+        print(f"Escuchando en {server_ip}:{server_port}")
 
-    # Recibir datos del cliente
-    while True:
-        request = client_socket.recv(1024)
-        request = request.decode("utf-8") # Convierte bytes a string
-        
-        # Si se recibe "close", se cierra la conexión
-        if request.lower() == "close":
-            # Enviar respuesta de cierre al cliente
-            client_socket.send("closed".encode("utf-8"))
-            break
+        clientes = []
 
-        print(f"Recibido: {request}")
+        # Esperar 2 clientes
+        while len(clientes) < 2:
+            client_socket, addr = server.accept()
+            print(f"Cliente conectado desde {addr[0]}:{addr[1]}")
+            clientes.append(client_socket)
 
-        response = "accepted".encode("utf-8") # Convierte string a bytes
-        # Enviar respuesta de aceptación al cliente
-        client_socket.send(response)
+        print("\n🔥 INICIANDO GUERRA GALÁCTICA 🔥\n")
 
-    # Cerrar el socket de conexión con el cliente
-    client_socket.close()
-    print("Conexión con el cliente cerrada")
-    # Cerrar el socket del servidor
-    server.close()
+        # =========================
+        # NOMBRES
+        # =========================
+        for cliente in clientes:
+            cliente.send("Introduce nombre de tu Reino:".encode())
+
+        nombres = []
+        for cliente in clientes:
+            data = cliente.recv(1024)
+            print("Recibido nombre RAW:", data)
+
+            nombre_reino = data.decode().strip()
+            print(f"Reino conectado: {nombre_reino}")
+            nombres.append(nombre_reino)
+
+        # =========================
+        # NAVES
+        # =========================
+        nave = Nave(0, "", 0, 0, 0, (0, 0), 0)
+        naves_lista = nave.crearNaves()
+
+        for cliente in clientes:
+            safe_send(cliente, "🏟️ CREAMOS LA FLOTA DE NAVES 🏟️")
+
+        for ship in naves_lista:
+
+            for cliente in clientes:
+                safe_send(cliente, f"Número de Naves ({ship.nombre}):")
+
+            for i, cliente in enumerate(clientes):
+                print("Esperando datos de cliente...")
+
+                data = safe_recv(cliente)
+                print("Recibido RAW:", data)
+
+                if data is None or data == "":
+                    cantidad = 0
+                else:
+                    try:
+                        cantidad = int(data.strip())
+                    except:
+                        print("Valor inválido recibido")
+                        cantidad = 0
+
+                print(f"{nombres[i]} -> {ship.nombre}: {cantidad}")
+
+        # =========================
+        # MANDALORIANOS
+        # =========================
+        mandaloriano = Mandaloriano(0, "", 0, 0, 0, 0, 0)
+        mandos_lista = mandaloriano.crearMandatorianos()
+
+        for cliente in clientes:
+            safe_send(cliente, "⚔️ CREAMOS LA LEGIÓN DE MANDALORIANOS ⚔️")
+
+        for mando in mandos_lista:
+
+            for cliente in clientes:
+                safe_send(cliente, f"Número de Mandalorianos ({mando.nombre}):")
+
+            for i, cliente in enumerate(clientes):
+                print("Esperando datos de cliente...")
+
+                data = safe_recv(cliente)
+                print("Recibido RAW:", data)
+
+                if data is None or data == "":
+                    cantidad = 0
+                else:
+                    try:
+                        cantidad = int(data.strip())
+                    except:
+                        print("Valor inválido recibido")
+                        cantidad = 0
+
+                print(f"{nombres[i]} -> {mando.nombre}: {cantidad}")
+
+        # =========================
+        # FINAL CONFIG
+        # =========================
+        for cliente in clientes:
+            safe_send(cliente, "✅ Configuración guardada. Servidor en espera...")
+
+        print("\n✅ CONFIGURACIÓN GUARDADA\n")
+        print("El servidor ahora queda en espera. Presiona Ctrl+C para detener.")
+
+        try:
+            while True:
+                time.sleep(10)
+        except KeyboardInterrupt:
+            print("\nServidor detenido por el usuario.")
+        finally:
+            for cliente in clientes:
+                try:
+                    cliente.close()
+                except:
+                    pass
+            server.close()
+            print("Servidor cerrado correctamente.")
+
+    except Exception as e:
+        print("❌ ERROR EN SERVIDOR:", e)
 
 
 run_server()
