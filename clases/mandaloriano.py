@@ -1,10 +1,30 @@
 import random as rd
 
 class Mandaloriano:
-    """Representa un Mandaloriano en el universo Star Wars."""
+    '''Representa un Mandaloriano en el universo Star Wars.
+
+    Atributos:
+        id (int): Identificador del mandaloriano.
+        name (str): Nombre del mandaloriano.
+        attack (int): Poder de ataque.
+        defense (int): Poder de defensa.
+        hp (int): Puntos de vida.
+        speed (int): Velocidad.
+        price (int): Precio del mandaloriano.
+    '''
 
     def __init__(self, id, name, attack, defense, hp, speed, price):
-        """Inicializa mandalorianos."""
+        '''Inicializa un mandaloriano.
+
+        Args:
+            id (int): Identificador del mandaloriano.
+            name (str): Nombre del mandaloriano.
+            attack (int): Poder de ataque.
+            defense (int): Poder de defensa.
+            hp (int): Puntos de vida.
+            speed (int): Velocidad.
+            price (int): Precio del mandaloriano.
+        '''
         self.id = id
         self.name = name
         self.attack = attack
@@ -15,6 +35,11 @@ class Mandaloriano:
 
     @staticmethod
     def crearMandalorianos():
+        '''Crea una lista de mandalorianos predefinidos.
+
+        Returns:
+            list[Mandaloriano]: Lista de objetos Mandaloriano.
+        '''
         return [
             Mandaloriano(1, "Mandaloriano 1", 20, 15, 100, 60, 800),
             Mandaloriano(2, "Mandaloriano 2", 25, 20, 120, 50, 1000),
