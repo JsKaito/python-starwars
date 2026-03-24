@@ -1,18 +1,45 @@
+
 import random as rd
 class Nave:
-    """Representa una nave en el universo Star Wars."""
+    '''Representa una nave en el universo Star Wars.
 
-    def __init__(self, id, nombre, ataque, defensa, vida, velocidad, coste):
-        """Inicializa una nave."""
+    Atributos:
+        id (int): Identificador de la nave.
+        name (str): Nombre de la nave.
+        attack (int): Poder de ataque.
+        defense (int): Poder de defensa.
+        hp (int): Puntos de vida.
+        speed (int | tuple): Velocidad o rango de velocidad.
+        price (int): Precio de la nave.
+    '''
+
+    def __init__(self, id, name, attack, defense, hp, speed, price):
+        '''Inicializa una nave.
+
+        Args:
+            id (int): Identificador de la nave.
+            name (str): Nombre de la nave.
+            attack (int): Poder de ataque.
+            defense (int): Poder de defensa.
+            hp (int): Puntos de vida.
+            speed (int | tuple): Velocidad o rango de velocidad.
+            price (int): Precio de la nave.
+        '''
         self.id = id
-        self.nombre = nombre
-        self.ataque = ataque
-        self.defensa = defensa
-        self.vida = vida
-        self.velocidad = velocidad
-        self.coste = coste
+        self.name = name
+        self.attack = attack
+        self.defense = defense
+        self.hp = hp
+        self.speed = speed
+        self.price = price
 
-    def crearNaves(self):
+    @staticmethod
+    def crearNaves():
+        '''Crea una lista de naves predefinidas.
+
+        Returns:
+            list[Nave]: Lista de objetos Nave.
+        '''
         return [
             Nave(1, "Estrella de la Muerte", 80, 90, 1500, (20, 30), 4500),
             Nave(2, "Ejecutor", 70, 80, 1200, (35, 50), 4000),
