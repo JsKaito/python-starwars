@@ -2,11 +2,14 @@ import socket
 
 
 def run_client():
-    """
-    Cliente para un servidor TCP.
+    '''Cliente para un servidor TCP.
+
     Envía conexiones a un servidor, envía mensajes y espera respuestas.
-    Si envía 'close', cierra la conexión. 
-    """
+    Si envía 'close', cierra la conexión.
+
+    Returns:
+        None
+    '''
     # Crea un socket
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
