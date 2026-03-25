@@ -1,8 +1,8 @@
 import random as rd
 import socket
 import threading
-from clases.Nave import Nave
-from clases.Mandaloriano import Mandaloriano
+from clases.nave import Nave
+from clases.mandaloriano import Mandaloriano
 
 UMBRAL_VELOCIDAD_ATAQUE = 60
 

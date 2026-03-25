@@ -1,5 +1,5 @@
-from .Nave import Nave
-from .Mandaloriano import Mandaloriano
+from .nave import Nave
+from .mandaloriano import Mandaloriano
 
 
 class Reino:
