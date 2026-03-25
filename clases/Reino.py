@@ -1,5 +1,5 @@
-from .nave import Nave, tiposNave
-from .mandaloriano import Mandaloriano, tiposMandaloriano
+from .Nave import Nave, tiposNave
+from .Mandaloriano import Mandaloriano, tiposMandaloriano
 
 class Reino:
     '''Representa un reino con naves y mandalorianos.

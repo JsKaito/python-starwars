@@ -1,38 +1,150 @@
 import random as rd
 import socket
-from clases.nave import Nave
-from clases.mandaloriano import Mandaloriano
+import threading
+from clases.Nave import Nave
+from clases.Mandaloriano import Mandaloriano
 
 UMBRAL_VELOCIDAD_ATAQUE = 60
 
 
-def correr_servidor_tcp_basico():
-    '''Servidor TCP básico para pruebas de conexión.
+def recibir_entero_no_negativo(sock):
+    '''Recibe un entero no negativo desde el socket.
 
-    Returns:
-        None
+    Si el valor recibido no es válido, devuelve 0 para evitar cortar la sesión.
     '''
+    try:
+        valor = int(sock.recv(1024).decode("utf-8").strip())
+        return max(0, valor)
+    except (ValueError, TypeError):
+        return 0
+
+
+def recibir_configuracion_reino(sock, indice_reino, reinos, catalogo_naves, catalogo_mandalorianos):
+    '''Recibe en paralelo la configuración completa de un cliente/reino.'''
+    nombre = sock.recv(1024).decode("utf-8")
+
+    cantidades_naves = []
+    for nave in catalogo_naves:
+        pregunta = f"PREGUNTA_NAVE|{nave.name}|{nave.price}"
+        sock.send(pregunta.encode("utf-8"))
+        cant = recibir_entero_no_negativo(sock)
+        cantidades_naves.append(cant)
+
+    cantidades_mandalorianos = []
+    for mandaloriano in catalogo_mandalorianos:
+        pregunta = (
+            f"PREGUNTA_MANDALORIANO|{mandaloriano.name}|"
+            f"{mandaloriano.id}|{mandaloriano.price}"
+        )
+        sock.send(pregunta.encode("utf-8"))
+        cant = recibir_entero_no_negativo(sock)
+        cantidades_mandalorianos.append(cant)
+
+    coste_total = calcular_coste_total(
+        cantidades_naves,
+        cantidades_mandalorianos,
+        catalogo_naves,
+        catalogo_mandalorianos,
+    )
+
+    reinos[indice_reino] = {
+        "nombre": nombre,
+        "cantidades_naves": cantidades_naves,
+        "cantidades_mandalorianos": cantidades_mandalorianos,
+        "coste_total": coste_total,
+    }
+
+    sock.send(f"COSTE_{coste_total}".encode("utf-8"))
+    sock.send(b"ESPERANDO_RIVAL")
+
+
+def correr_servidor_tcp_basico():
+    '''Servidor TCP para batalla entre dos clientes personalizados.'''
     servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ip_servidor = "127.0.0.1"
     puerto = 8000
-
     servidor.bind((ip_servidor, puerto))
-    servidor.listen(1)
+    servidor.listen(2)
     print(f"Escuchando en {ip_servidor}:{puerto}")
 
-    socket_cliente, direccion_cliente = servidor.accept()
-    print(f"Conexión aceptada de {direccion_cliente[0]}:{direccion_cliente[1]}")
+    clientes = []
+    direcciones = []
+    for i in range(2):
+        sock, addr = servidor.accept()
+        print(f"Conexión aceptada de {addr[0]}:{addr[1]}")
+        clientes.append(sock)
+        direcciones.append(addr)
 
-    while True:
-        solicitud = socket_cliente.recv(1024).decode("utf-8")
-        if solicitud.lower() == "close":
-            socket_cliente.send("closed".encode("utf-8"))
-            break
+    catalogo_naves = Nave.crearNaves()
+    catalogo_mandalorianos = Mandaloriano.crearMandalorianos()
+    reinos = [None, None]
+    hilos = []
+    for idx, sock in enumerate(clientes):
+        hilo = threading.Thread(
+            target=recibir_configuracion_reino,
+            args=(sock, idx, reinos, catalogo_naves, catalogo_mandalorianos),
+        )
+        hilo.start()
+        hilos.append(hilo)
 
-        print(f"Recibido: {solicitud}")
-        socket_cliente.send("accepted".encode("utf-8"))
+    for hilo in hilos:
+        hilo.join()
 
-    socket_cliente.close()
+    for sock in clientes:
+        sock.send(b"INICIANDO_BATALLA")
+
+    print("Ambos reinos recibidos desde los clientes. Iniciando batalla...")
+    imprimir_configuracion_reino(1, reinos[0], catalogo_naves, catalogo_mandalorianos)
+    print("=" * 40)
+    imprimir_configuracion_reino(2, reinos[1], catalogo_naves, catalogo_mandalorianos)
+
+    unidades_reino_1 = crear_unidades_reino(
+        reinos[0]["nombre"],
+        reinos[0]["cantidades_naves"],
+        reinos[0]["cantidades_mandalorianos"],
+        catalogo_naves,
+        catalogo_mandalorianos,
+    )
+    unidades_reino_2 = crear_unidades_reino(
+        reinos[1]["nombre"],
+        reinos[1]["cantidades_naves"],
+        reinos[1]["cantidades_mandalorianos"],
+        catalogo_naves,
+        catalogo_mandalorianos,
+    )
+
+    estado_inicial_reino_1 = contar_estado(unidades_reino_1)
+    estado_inicial_reino_2 = contar_estado(unidades_reino_2)
+
+    turno = 0
+    while not reino_derrotado(unidades_reino_1) and not reino_derrotado(unidades_reino_2):
+        turno += 1
+        eventos = procesar_turno(unidades_reino_1, unidades_reino_2)
+
+    # Resultado final
+    naves_final_1, mandal_final_1 = contar_estado(unidades_reino_1)
+    naves_final_2, mandal_final_2 = contar_estado(unidades_reino_2)
+    naves_inicial_1, mandal_inicial_1 = estado_inicial_reino_1
+    naves_inicial_2, mandal_inicial_2 = estado_inicial_reino_2
+    perdidas_naves_1 = naves_inicial_1 - naves_final_1
+    perdidas_mandal_1 = mandal_inicial_1 - mandal_final_1
+    perdidas_naves_2 = naves_inicial_2 - naves_final_2
+    perdidas_mandal_2 = mandal_inicial_2 - mandal_final_2
+    if reino_derrotado(unidades_reino_1) and reino_derrotado(unidades_reino_2):
+        ganador = "EMPATE"
+    elif reino_derrotado(unidades_reino_2):
+        ganador = reinos[0]["nombre"]
+    else:
+        ganador = reinos[1]["nombre"]
+    print("=== RESULTADO FINAL DE LA GUERRA ===")
+    print(f"GANADOR: {ganador}")
+
+    mensaje_resultado = f"RESULTADO|{ganador}|{turno}"
+    for sock in clientes:
+        sock.send(mensaje_resultado.encode("utf-8"))
+
+    for sock in clientes:
+        sock.close()
     servidor.close()
 
 
@@ -535,10 +647,9 @@ def iniciar_guerra():
 
 
 def ejecutar_servidor_principal():
-    if mostrar_menu_principal():
-        iniciar_guerra()
-    else:
-        print("Servidor finalizado.")
+    print("=== SERVIDOR - LA GUERRA DE LAS GALAXIAS (2026) ===")
+    print("Iniciando servidor automaticamente...")
+    correr_servidor_tcp_basico()
 
 
 if __name__ == "__main__":

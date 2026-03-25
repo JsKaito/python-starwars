@@ -1,4 +1,3 @@
-
 import random as rd
 class Nave:
     '''Representa una nave en el universo Star Wars.
